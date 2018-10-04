@@ -33,7 +33,8 @@ RUN docker-php-ext-install \
     pdo \
     pdo_mysql \
     pdo_pgsql \
-    pgsql
+    pgsql \
+    gettext
 RUN pecl install APCu-5.1.12
 RUN pecl install memcached-3.0.4
 RUN pecl install redis-4.1.1
