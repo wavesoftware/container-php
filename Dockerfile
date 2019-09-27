@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libmemcached-dev \
     libpq-dev \
+    libzip-dev \
     rsync \
     bzip2 \
     busybox-static \
@@ -35,10 +36,10 @@ RUN docker-php-ext-install \
     pdo_pgsql \
     pgsql \
     gettext
-RUN pecl install APCu-5.1.12
-RUN pecl install memcached-3.0.4
-RUN pecl install redis-4.1.1
-RUN pecl install mcrypt-1.0.1
+RUN pecl install APCu-5.1.17
+RUN pecl install memcached-3.1.3
+RUN pecl install redis-5.0.2
+RUN pecl install mcrypt-1.0.3
 RUN docker-php-ext-enable \
     apcu \
     memcached \
