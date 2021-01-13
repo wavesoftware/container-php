@@ -1,4 +1,4 @@
-FROM php:7-fpm
+FROM docker.io/library/php:7-fpm
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libicu-dev \
@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install -y \
     busybox-static \
     libmagickwand-dev \
     && rm -rf /var/lib/apt/lists/*
-RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+RUN docker-php-ext-configure gd \
+  --with-freetype \
+  --with-jpeg
 RUN docker-php-ext-configure ldap --with-libdir="lib/$(dpkg-architecture --query DEB_BUILD_MULTIARCH)"
 RUN docker-php-ext-install \
     iconv \
@@ -36,10 +38,10 @@ RUN docker-php-ext-install \
     pdo_pgsql \
     pgsql \
     gettext
-RUN pecl install APCu-5.1.17
-RUN pecl install memcached-3.1.3
-RUN pecl install redis-5.0.2
-RUN pecl install mcrypt-1.0.3
+RUN yes '' | pecl install apcu
+RUN yes '' | pecl install memcached
+RUN yes '' | pecl install redis
+RUN yes '' | pecl install mcrypt
 RUN docker-php-ext-enable \
     apcu \
     memcached \
