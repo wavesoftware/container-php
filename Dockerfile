@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
     bzip2 \
     busybox-static \
     libmagickwand-dev \
+    imagemagick \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-configure gd \
   --with-freetype \
@@ -38,6 +40,7 @@ RUN docker-php-ext-install \
     pdo_pgsql \
     pgsql \
     gettext
+RUN yes '' | pecl install imagick
 RUN yes '' | pecl install apcu
 RUN yes '' | pecl install memcached
 RUN yes '' | pecl install redis
@@ -46,7 +49,8 @@ RUN docker-php-ext-enable \
     apcu \
     memcached \
     redis \
-    mcrypt
+    mcrypt \
+    imagick
 RUN { \
         echo 'opcache.enable=1'; \
         echo 'opcache.enable_cli=1'; \
