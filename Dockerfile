@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libmemcached-dev \
     libpq-dev \
     libzip-dev \
+    libgmp-dev \
     rsync \
     bzip2 \
     busybox-static \
@@ -39,7 +40,9 @@ RUN docker-php-ext-install \
     pdo_mysql \
     pdo_pgsql \
     pgsql \
-    gettext
+    gettext \
+    bcmath \
+    gmp
 RUN yes '' | pecl install imagick
 RUN yes '' | pecl install apcu
 RUN yes '' | pecl install memcached
