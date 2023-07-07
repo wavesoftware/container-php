@@ -1,4 +1,4 @@
-FROM docker.io/library/php:7-fpm
+FROM docker.io/library/php:8-fpm
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libicu-dev \
@@ -17,9 +17,7 @@ RUN apt-get update && apt-get install -y \
     bzip2 \
     busybox-static \
     libmagickwand-dev \
-    imagemagick \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+    imagemagick
 RUN docker-php-ext-configure gd \
   --with-freetype \
   --with-jpeg

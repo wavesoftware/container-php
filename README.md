@@ -1,9 +1,9 @@
-WaveSoftware PHP7
-=================
+WaveSoftware PHP
+================
 
-[![Docker Repository on Quay](https://quay.io/repository/wavesoftware/php7/status "Docker Repository on Quay")](https://quay.io/repository/wavesoftware/php7)
+[![Docker Repository on Quay](https://quay.io/repository/wavesoftware/php/status "Docker Repository on Quay")](https://quay.io/repository/wavesoftware/php)
 
-A PHP7 fpm distribution use by WaveSoftware PHP host to serve various websites like:
+A PHP fpm distribution use by WaveSoftware PHP host to serve various websites like:
 
  * Wordpress,
  * NextCloud,
