@@ -1,4 +1,4 @@
-FROM docker.io/library/php:8.1-fpm
+FROM docker.io/library/php:8-fpm
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libicu-dev \
@@ -40,6 +40,7 @@ RUN docker-php-ext-install \
     pgsql \
     gettext \
     bcmath \
+    sysvsem \
     gmp
 RUN yes '' | pecl install imagick
 RUN yes '' | pecl install apcu
