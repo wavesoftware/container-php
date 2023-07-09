@@ -1,4 +1,4 @@
-FROM docker.io/library/php:8-fpm
+FROM docker.io/library/php:8.1-fpm
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libicu-dev \
