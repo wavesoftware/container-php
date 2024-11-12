@@ -1,7 +1,7 @@
 WaveSoftware PHP
 ================
 
-[![Docker Repository on Quay](https://quay.io/repository/wavesoftware/php/status "Docker Repository on Quay")](https://quay.io/repository/wavesoftware/php)
+[![Multiarch build](https://github.com/wavesoftware/container-php/actions/workflows/multiarch-build.yaml/badge.svg)](https://github.com/wavesoftware/container-php/actions/workflows/multiarch-build.yaml)
 
 A PHP fpm distribution use by WaveSoftware PHP host to serve various websites like:
 
