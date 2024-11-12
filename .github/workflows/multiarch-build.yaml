@@ -1,0 +1,41 @@
+name: Multiarch build
+
+on: 
+  push:
+    branches:
+      - '**'
+  schedule:
+  # Every month's 2nd on 5:30
+  - cron: '30 5 2 * *'
+
+jobs:
+  multiarch-build:
+    name: Build images
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install qemu dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static
+
+      - name: Buildah Action
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: php
+          tags: latest
+          platforms: linux/amd64, linux/arm64
+          containerfiles: Containerfile
+
+      - name: Push To quay.io
+        id: push-to-quay
+        uses: redhat-actions/push-to-registry@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: quay.io/wavesoftware
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_PASSWORD }}
