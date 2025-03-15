@@ -1,4 +1,4 @@
-FROM docker.io/library/php:8.3-fpm
+FROM docker.io/library/php:8-fpm
 RUN apt-get update && apt-get upgrade -y && apt-get autoclean
 
 ADD --chmod=0755 \
@@ -19,7 +19,6 @@ RUN install-php-extensions \
   intl \
   ldap \
   mbstring \
-  mcrypt \
   memcached \
   mysqli \
   opcache \
