@@ -2,7 +2,7 @@ FROM docker.io/library/php:8-fpm
 RUN apt-get update && apt-get upgrade -y && apt-get autoclean
 
 ADD --chmod=0755 \
-  https://github.com/mlocati/docker-php-extension-installer/releases/download/2.7.28/install-php-extensions \
+  https://github.com/mlocati/docker-php-extension-installer/releases/download/2.9.0/install-php-extensions \
   /usr/local/bin/
   
 RUN install-php-extensions \
