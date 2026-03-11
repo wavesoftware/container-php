@@ -1,4 +1,4 @@
-FROM docker.io/library/php:8-fpm
+FROM docker.io/library/php:8.4-fpm
 RUN apt-get update && apt-get upgrade -y && apt-get autoclean
 
 ADD --chmod=0755 \
