@@ -1,8 +1,17 @@
-FROM docker.io/library/php:8.4-fpm
-RUN apt-get update && apt-get upgrade -y && apt-get autoclean
+FROM docker.io/library/php:8.5-fpm
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+      ffmpeg \
+      libreoffice \
+      imagemagick \
+      --no-install-recommends \
+      && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ADD --chmod=0755 \
-  https://github.com/mlocati/docker-php-extension-installer/releases/download/2.9.0/install-php-extensions \
+  https://github.com/mlocati/docker-php-extension-installer/releases/download/2.12.3/install-php-extensions \
   /usr/local/bin/
   
 RUN install-php-extensions \

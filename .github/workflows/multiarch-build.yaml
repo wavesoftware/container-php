@@ -14,7 +14,7 @@ jobs:
     name: Build images
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install qemu dependency
         run: |
@@ -23,7 +23,7 @@ jobs:
 
       - name: Buildah Action
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: php
           tags: latest
@@ -32,7 +32,7 @@ jobs:
 
       - name: Push To quay.io
         id: push-to-quay
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@v3
         if: github.ref == 'refs/heads/master'
         with:
           image: ${{ steps.build-image.outputs.image }}
