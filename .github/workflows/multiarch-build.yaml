@@ -23,7 +23,7 @@ jobs:
 
       - name: Buildah Action
         id: build-image
-        uses: redhat-actions/buildah-build@3f7ef4f0e61d6d1def3bf4fdd77798afca03428b # main: v3.1.0 inspects with {{.OCIv1.architecture}} (invalid), fixed on main
+        uses: redhat-actions/buildah-build@3f7ef4f0e61d6d1def3bf4fdd77798afca03428b # main; v3.1.0 has a broken inspect template (fixed upstream in https://github.com/redhat-actions/buildah-build/pull/207), switch back to @v3 once released
         with:
           image: php
           tags: latest
