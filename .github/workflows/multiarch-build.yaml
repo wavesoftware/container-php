@@ -23,7 +23,7 @@ jobs:
 
       - name: Buildah Action
         id: build-image
-        uses: redhat-actions/buildah-build@3f7ef4f0e61d6d1def3bf4fdd77798afca03428b # main; v3.1.0 has a broken inspect template (fixed upstream in https://github.com/redhat-actions/buildah-build/pull/207), switch back to @v3 once released
+        uses: redhat-actions/buildah-build@v3
         with:
           # Fully qualified names: push-to-registry@v3 looks the local manifest
           # up as "localhost/<image>:<tag>" (run 39996644389 failed with
@@ -53,4 +53,4 @@ jobs:
         with:
           image: php
           tags: 1h
-          registry: ttl.sh/wavesoftware-container-php-${{ github.sha }}
+          registry: ttl.sh/wavesoftware
