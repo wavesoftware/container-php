@@ -25,11 +25,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v3
         with:
-          # Fully qualified names: push-to-registry@v3 looks the local manifest
-          # up as "localhost/<image>:<tag>" (run 39996644389 failed with
-          # "localhost/php:latest: image not known" for an unqualified "php").
-          # "1h" is the ttl.sh retention tag used for non-master verification.
-          tags: localhost/php:latest localhost/php:1h
+          tags: localhost/php:latest
           platforms: linux/amd64, linux/arm64
           containerfiles: Containerfile
 
