@@ -25,8 +25,11 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@3f7ef4f0e61d6d1def3bf4fdd77798afca03428b # main; v3.1.0 has a broken inspect template (fixed upstream in https://github.com/redhat-actions/buildah-build/pull/207), switch back to @v3 once released
         with:
-          image: php
-          tags: latest
+          # Fully qualified names: push-to-registry@v3 looks the local manifest
+          # up as "localhost/<image>:<tag>" (run 39996644389 failed with
+          # "localhost/php:latest: image not known" for an unqualified "php").
+          # "1h" is the ttl.sh retention tag used for non-master verification.
+          tags: localhost/php:latest localhost/php:1h
           platforms: linux/amd64, linux/arm64
           containerfiles: Containerfile
 
@@ -35,8 +38,19 @@ jobs:
         uses: redhat-actions/push-to-registry@v3
         if: github.ref == 'refs/heads/master'
         with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
+          image: php
+          tags: latest
           registry: quay.io/wavesoftware
           username: ${{ secrets.QUAY_USER }}
           password: ${{ secrets.QUAY_PASSWORD }}
+
+      # Outside master, push to the anonymous, ephemeral ttl.sh registry so the
+      # push path is verified on every branch without touching quay.io.
+      - name: Push To ttl.sh
+        id: push-to-ttl
+        uses: redhat-actions/push-to-registry@v3
+        if: github.ref != 'refs/heads/master'
+        with:
+          image: php
+          tags: 1h
+          registry: ttl.sh/wavesoftware-container-php-${{ github.sha }}
