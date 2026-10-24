@@ -21,48 +21,22 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y qemu-user-static
 
-      # The redhat-actions/buildah-build action inspects images with
-      # `{{.OCIv1.architecture}}`, which fails on current buildah
-      # (run 39996644389), leaving no local manifest. Build explicitly instead.
-      - name: Build multi-arch manifest
-        env:
-          IMAGE: php
-          TAG: latest
-        run: |
-          set -euo pipefail
-          # Idempotent cleanup: ignore "image not known"
-          buildah manifest rm "${IMAGE}:${TAG}" 2>/dev/null || true
-          buildah manifest create "${IMAGE}:${TAG}"
-          for arch in amd64 arm64; do
-            echo "::group::Building linux/${arch}"
-            buildah build --platform "linux/${arch}" \
-              --manifest "${IMAGE}:${TAG}" \
-              --file Containerfile .
-            echo "::endgroup::"
-          done
-          echo "Manifest contents:"
-          buildah manifest inspect "${IMAGE}:${TAG}"
-          count=$(buildah manifest inspect "${IMAGE}:${TAG}" | jq '.manifests | length')
-          if [ "${count}" -ne 2 ]; then
-            echo "::error::Expected 2 images in manifest ${IMAGE}:${TAG}, found ${count}"
-            exit 1
-          fi
+      - name: Buildah Action
+        id: build-image
+        uses: redhat-actions/buildah-build@3f7ef4f0e61d6d1def3bf4fdd77798afca03428b # main: v3.1.0 inspects with {{.OCIv1.architecture}} (invalid), fixed on main
+        with:
+          image: php
+          tags: latest
+          platforms: linux/amd64, linux/arm64
+          containerfiles: Containerfile
 
       - name: Push To quay.io
         id: push-to-quay
+        uses: redhat-actions/push-to-registry@v3
         if: github.ref == 'refs/heads/master'
-        env:
-          IMAGE: php
-          TAG: latest
-          QUAY_USER: ${{ secrets.QUAY_USER }}
-          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
-        run: |
-          set -euo pipefail
-          if ! podman manifest exists "localhost/${IMAGE}:${TAG}"; then
-            echo "::error::Local manifest localhost/${IMAGE}:${TAG} not found. Local images:"
-            podman images
-            exit 1
-          fi
-          podman login quay.io -u "${QUAY_USER}" --password-stdin <<< "${QUAY_PASSWORD}"
-          podman manifest push --all "localhost/${IMAGE}:${TAG}" \
-            "docker://quay.io/wavesoftware/${IMAGE}:${TAG}"
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: quay.io/wavesoftware
+          username: ${{ secrets.QUAY_USER }}
+          password: ${{ secrets.QUAY_PASSWORD }}
