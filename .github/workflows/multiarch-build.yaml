@@ -9,44 +9,69 @@ on:
   - cron: '30 5 2 * *'
   workflow_dispatch: {} # allow manual trigger
 
+env:
+  # master publishes to quay.io, other refs to the ephemeral ttl.sh registry
+  REGISTRY: ${{ github.ref == 'refs/heads/master' && 'quay.io/wavesoftware' || 'ttl.sh/wavesoftware' }}
+
 jobs:
-  multiarch-build:
-    name: Build images
-    runs-on: ubuntu-24.04
+  build:
+    name: Build ${{ matrix.arch }} image
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install qemu dependency
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-user-static
-
+      # Native build on each architecture, no QEMU emulation needed
       - name: Buildah Action
         id: build-image
         uses: redhat-actions/buildah-build@v3
         with:
-          tags: localhost/php:latest
-          platforms: linux/amd64, linux/arm64
+          tags: localhost/php:latest-${{ matrix.arch }}
+          platforms: linux/${{ matrix.arch }}
           containerfiles: Containerfile
 
-      - name: Push To quay.io
-        id: push-to-quay
+      - name: Push per-arch image
+        id: push-image
         uses: redhat-actions/push-to-registry@v3
-        if: github.ref == 'refs/heads/master'
         with:
           image: php
-          tags: latest
-          registry: quay.io/wavesoftware
-          username: ${{ secrets.QUAY_USER }}
-          password: ${{ secrets.QUAY_PASSWORD }}
+          tags: latest-${{ matrix.arch }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.ref == 'refs/heads/master' && secrets.QUAY_USER || '' }}
+          password: ${{ github.ref == 'refs/heads/master' && secrets.QUAY_PASSWORD || '' }}
 
-      # Outside master, push to the anonymous, ephemeral ttl.sh registry so the
-      # push path is verified on every branch without touching quay.io.
-      - name: Push To ttl.sh
-        id: push-to-ttl
-        uses: redhat-actions/push-to-registry@v3
-        if: github.ref != 'refs/heads/master'
-        with:
-          image: php
-          tags: latest
-          registry: ttl.sh/wavesoftware
+  manifest:
+    name: Combine into multi-arch image
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Log in to quay.io
+        if: github.ref == 'refs/heads/master'
+        env:
+          QUAY_USER: ${{ secrets.QUAY_USER }}
+          QUAY_PASSWORD: ${{ secrets.QUAY_PASSWORD }}
+        run: |
+          buildah login --username "${QUAY_USER}" --password-stdin quay.io <<< "${QUAY_PASSWORD}"
+
+      - name: Create and push manifest list
+        run: |
+          set -euo pipefail
+          image="${REGISTRY}/php"
+          buildah manifest create php:latest
+          for arch in amd64 arm64; do
+            buildah manifest add php:latest "docker://${image}:latest-${arch}"
+          done
+          count=$(buildah manifest inspect php:latest | jq '.manifests | length')
+          if [ "${count}" -ne 2 ]; then
+            echo "::error::Expected 2 images in manifest, found ${count}"
+            buildah manifest inspect php:latest
+            exit 1
+          fi
+          buildah manifest push --all php:latest "docker://${image}:latest"
