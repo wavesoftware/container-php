@@ -48,5 +48,5 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           image: php
-          tags: 1h
+          tags: latest
           registry: ttl.sh/wavesoftware
