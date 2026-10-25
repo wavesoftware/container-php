@@ -3,13 +3,16 @@ name: Multiarch build
 on: 
   push:
     branches:
-      - '**'
+      - master
+  pull_request: {} # PR builds are tagged pr-<number>
   schedule:
   # Every month's 2nd on 5:30
   - cron: '30 5 2 * *'
   workflow_dispatch: {} # allow manual trigger
 
 env:
+  # master publishes :latest, PRs publish :pr-<number> so parallel PRs don't interfere
+  TAG: ${{ github.ref == 'refs/heads/master' && 'latest' || format('pr-{0}', github.event.number || github.run_id) }}
   # master publishes to quay.io, other refs to the ephemeral ttl.sh registry
   REGISTRY: ${{ github.ref == 'refs/heads/master' && 'quay.io/wavesoftware' || 'ttl.sh/wavesoftware' }}
 
@@ -33,7 +36,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v3
         with:
-          tags: localhost/php:latest-${{ matrix.arch }}
+          tags: localhost/php:${{ env.TAG }}-${{ matrix.arch }}
           platforms: linux/${{ matrix.arch }}
           containerfiles: Containerfile
 
@@ -42,7 +45,7 @@ jobs:
         uses: redhat-actions/push-to-registry@v3
         with:
           image: php
-          tags: latest-${{ matrix.arch }}
+          tags: ${{ env.TAG }}-${{ matrix.arch }}
           registry: ${{ env.REGISTRY }}
           username: ${{ github.ref == 'refs/heads/master' && secrets.QUAY_USER || '' }}
           password: ${{ github.ref == 'refs/heads/master' && secrets.QUAY_PASSWORD || '' }}
@@ -64,14 +67,14 @@ jobs:
         run: |
           set -euo pipefail
           image="${REGISTRY}/php"
-          buildah manifest create php:latest
+          buildah manifest create php:${TAG}
           for arch in amd64 arm64; do
-            buildah manifest add php:latest "docker://${image}:latest-${arch}"
+            buildah manifest add php:${TAG} "docker://${image}:${TAG}-${arch}"
           done
-          count=$(buildah manifest inspect php:latest | jq '.manifests | length')
+          count=$(buildah manifest inspect php:${TAG} | jq '.manifests | length')
           if [ "${count}" -ne 2 ]; then
             echo "::error::Expected 2 images in manifest, found ${count}"
-            buildah manifest inspect php:latest
+            buildah manifest inspect php:${TAG}
             exit 1
           fi
-          buildah manifest push --all php:latest "docker://${image}:latest"
+          buildah manifest push --all php:${TAG} "docker://${image}:${TAG}"
